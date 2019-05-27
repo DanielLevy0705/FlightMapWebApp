@@ -13,11 +13,26 @@ namespace Exercise3
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
+            
             routes.MapRoute(
-                name: "Default",
-                url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+                "BasicDisplay",
+                "display/{param1}/{param2}/{freq}",
+                new {Controller = "Home", Action = "Display", freq = UrlParameter.Optional }
             );
+            routes.MapRoute(
+                "SaveTrack",
+                "save/{ip}/{port}/{freq}/{duration}/{file}",
+                new { Controller = "Home", Action = "Save" }
+            );
+            routes.MapRoute(
+                "GetLocation",
+                "info/location",
+                new { Controller = "Info", Action = "location" }
+            );
+
+
+
+
         }
     }
 }
