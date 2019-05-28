@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Exercise3.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -11,6 +12,8 @@ namespace Exercise3
     {
         protected void Application_Start()
         {
+            FlightSimulatorsModel.Instance.Start(new TelnetClient(), 3000);
+            ModelTester.Test();
             AreaRegistration.RegisterAllAreas();
             RouteConfig.RegisterRoutes(RouteTable.Routes);
         }

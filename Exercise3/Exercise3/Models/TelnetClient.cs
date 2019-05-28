@@ -15,7 +15,7 @@ namespace Exercise3.Models
     {
         private TcpClient client;
         private NetworkStream stream;
-        private BinaryReader reader;
+        private StreamReader reader;
         private BinaryWriter writer;
         Boolean connected = false;
         //a function that connects to a server.
@@ -25,7 +25,8 @@ namespace Exercise3.Models
             client = new TcpClient();
             client.Connect(ep);
             stream = client.GetStream();
-            reader = new BinaryReader(stream);
+            
+            reader = new StreamReader(stream);
             writer = new BinaryWriter(stream);
             connected = true;
         }
@@ -46,7 +47,11 @@ namespace Exercise3.Models
         {
             if (!connected)
                 return null;
-            string value = reader.ReadString();
+            
+            
+            string value = reader.ReadLine();
+
+
             return value;
         }
         //a function to write commands to a server.

@@ -16,6 +16,7 @@ namespace Exercise3.Models
             public DateTime Expirey { set; get; }
             public ManagableClient(ITelnetClient client, double timeout)
             {
+                mutex = new Mutex(false);
                 Client = client;
                 setTimeout(timeout);
             }
@@ -36,6 +37,8 @@ namespace Exercise3.Models
         
         public ExpirableClientsManager(int timeout)
         {
+            mutex = new Mutex(false);
+            clients = new Dictionary<Tuple<string, int>, ManagableClient>();
             Timeout = timeout;
             active = false;
         }
@@ -68,27 +71,32 @@ namespace Exercise3.Models
                 {
                     Thread.Sleep(Timeout);
                     //delete from the servers list every server which is not necesarry;
+                    var expireds = new List<Tuple<string, int>>();
                     
-
-                    foreach (var pair in clients)
+                    foreach (var key in clients.Keys)
+                    {
+                        if (clients[key].Expired)
+                            expireds.Add(key);
+                        else
+                            clients[key].setTimeout(Timeout);
+                    }
+                    foreach (var expired in expireds)
                     {
                         mutex.WaitOne();
                         try
                         {
-                            if (pair.Value.Expired)
+                            var client = clients[expired];
+                            if (client.Expired)
                             {
-                                pair.Value.Client.Disconnect();
-                                clients.Remove(pair.Key);
-                            }
-                            else
-                            {
-                                pair.Value.setTimeout(Timeout);
+                                client.Client.Disconnect();
+                                clients.Remove(expired);
                             }
                         }
                         finally
                         {
                             mutex.ReleaseMutex();
                         }
+                        
                     }
                 }
                 
@@ -148,8 +156,9 @@ namespace Exercise3.Models
         {
             if (active)
             {
-                checkClient(key);
+                  checkClient(key);
                 clients[key].mutex.WaitOne();
+                    
             }
         }
         public void Unlock(Tuple<String, int> key)
@@ -157,7 +166,14 @@ namespace Exercise3.Models
             if (active)
             {
                 checkClient(key);
-                clients[key].mutex.ReleaseMutex();
+                try
+                {
+                    clients[key].mutex.ReleaseMutex();
+                } catch(Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("error on mutex release");
+                }
+                
             }
         }
     }
