@@ -13,7 +13,7 @@ namespace Exercise3.Models
         public static void Test()
         {
             var model = FlightSimulatorsModel.Instance;
-            // GetDataTests(model);
+            GetDataTests(model);
             SaveDataTests(model);
             LoadDataTests(model);
 

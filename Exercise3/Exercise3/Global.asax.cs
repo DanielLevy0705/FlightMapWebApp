@@ -13,7 +13,7 @@ namespace Exercise3
         protected void Application_Start()
         {
             FlightSimulatorsModel.Instance.Start(new TelnetClient(), 3000);
-            ModelTester.Test();
+            //ModelTester.Test();
             AreaRegistration.RegisterAllAreas();
             RouteConfig.RegisterRoutes(RouteTable.Routes);
         }
