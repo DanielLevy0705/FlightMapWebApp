@@ -20,12 +20,12 @@ namespace Exercise3.Controllers
 
             //IFlightSimulatorModel model = FlightSimulatorModel.Instance; //remember to create the first instance (there is no settings this time)
        
-            if (Parameter.isIP(param1) && Parameter.isInt(param2))
-                return Content("hello:");
+            //if (Parameter.isIP(param1) && Parameter.isInt(param2))
+              //  return Content("hello:");
 
-            if (Parameter.isFile(param1) && Parameter.isNum(param2))
-                return Content("file");
-            return Content("wrong format");
+            //if (Parameter.isFile(param1) && Parameter.isNum(param2))
+              //  return Content("file");
+            return View();
             //return View(model);
         }
         public ActionResult Save(string ip, int port, int freq, double duration, string file)

@@ -1,0 +1,36 @@
+﻿
+@{
+    ViewBag.Title = "display";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <style>
+        #canvas1{
+            height:100%;
+            width:100%;
+        }
+    </style>
+    <meta name="viewport" content="width=device-width" />
+</head>
+<body>
+    <canvas id="canvas1"></canvas>
+    <div>
+        <script>
+            var c = document.getElementById("canvas1");
+            var ctx = c.getContext("2d");
+            ctx.beginPath();
+            ctx.arc(window.innerWidth/10, window.innerHeight / 10, 2, 0, 2 * Math.PI);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(window.innerWidth/10, window.innerHeight / 10, 1, 0, 2 * Math.PI);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            
+        </script>
+    </div>
+</body>
+</html>
