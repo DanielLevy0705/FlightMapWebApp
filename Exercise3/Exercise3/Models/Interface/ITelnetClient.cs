@@ -14,4 +14,8 @@ namespace Exercise3.Models.Interface
         string Read();
         void Disconnect();
     }
+    public interface ITelnetClientFactory
+    {
+        ITelnetClient New();
+    }
 }

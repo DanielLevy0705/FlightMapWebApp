@@ -109,8 +109,11 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\BaseNotify.cs" />
-    <Compile Include="Models\FlightSimulatorModel.cs" />
-    <Compile Include="Models\Interface\IFlightSimulatorModel.cs" />
+    <Compile Include="Models\ExpirableClientsManager.cs" />
+    <Compile Include="Models\Interface\IClientsManager.cs" />
+    <Compile Include="Models\Parameter.cs" />
+    <Compile Include="Models\FlightSimulatorsModel.cs" />
+    <Compile Include="Models\Interface\IFlightSimulatorsModel.cs" />
     <Compile Include="Models\Interface\ITelnetClient.cs" />
     <Compile Include="Models\TelnetClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

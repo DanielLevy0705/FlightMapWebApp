@@ -11,7 +11,7 @@ using System.IO;
 namespace Exercise3.Models
 {
     //A class that represents a telnet client.
-    public class TelnetClient : ITelnetClient
+    public class TelnetClient : ITelnetClient, ITelnetClientFactory
     {
         private TcpClient client;
         private NetworkStream stream;
@@ -61,6 +61,10 @@ namespace Exercise3.Models
             byte[] bytes = encoding.GetBytes(command);
             writer.Write(bytes,0,bytes.Length);
             writer.Flush();
+        }
+        public ITelnetClient New()
+        {
+            return new TelnetClient();
         }
     }
 }

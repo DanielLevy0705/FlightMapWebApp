@@ -5,7 +5,8 @@ using System.Web;
 using System.Web.Mvc;
 using Exercise3.Models;
 using Exercise3.Models.Interface;
-
+using System.Net.Sockets;
+using System.Net;
 
 namespace Exercise3.Controllers
 {
@@ -18,9 +19,11 @@ namespace Exercise3.Controllers
         {
 
             //IFlightSimulatorModel model = FlightSimulatorModel.Instance; //remember to create the first instance (there is no settings this time)
-            if (isIp(param1))
-                return Content("hello:" + ip);
-            if (isFile(param1))
+       
+            if (Parameter.isIP(param1) && Parameter.isInt(param2))
+                return Content("hello:");
+
+            if (Parameter.isFile(param1) && Parameter.isNum(param2))
                 return Content("file");
             return Content("wrong format");
             //return View(model);
