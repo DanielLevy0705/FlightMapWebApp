@@ -18,15 +18,14 @@ namespace Exercise3.Controllers
         public ActionResult Display(string param1, string param2, int freq = -1)
         {
 
-            //IFlightSimulatorModel model = FlightSimulatorModel.Instance; //remember to create the first instance (there is no settings this time)
+            IFlightSimulatorsModel model = FlightSimulatorsModel.Instance; //remember to create the first instance (there is no settings this time)
        
-            //if (Parameter.isIP(param1) && Parameter.isInt(param2))
-              //  return Content("hello:");
+            if (Parameter.isIP(param1) && Parameter.isInt(param2))
+                return View(model);
 
             //if (Parameter.isFile(param1) && Parameter.isNum(param2))
               //  return Content("file");
-            return View();
-            //return View(model);
+            return Content("Wrong url buddy.");
         }
         public ActionResult Save(string ip, int port, int freq, double duration, string file)
         {
