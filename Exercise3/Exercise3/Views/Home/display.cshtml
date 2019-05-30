@@ -1,4 +1,4 @@
-﻿@model Exercise3.Models.FlightSimulatorsModel
+﻿@model Exercise3.Models.DisplayDataContainerViewModel
 @{
     ViewBag.Title = "display";
 }
@@ -11,9 +11,10 @@
     <meta name="viewport" content="width=device-width" />
 </head>
 <body>
-    <canvas id="canvas1"></canvas>
-    <div>
+    
+        <canvas id="canvas1"></canvas>
         <script>
+            
             var c = document.getElementById("canvas1");
             c.width = window.innerWidth;
             c.height = window.innerHeight;
@@ -31,7 +32,8 @@
             r3 = new range(0, window.innerWidth);
             r4 = new range(0, window.innerHeight);
             @{ 
-                var res = Model.GetData("127.0.0.1", 5402, new[] { "Lon", "Lat" });
+                var res = Model.model.GetData(Model.Param1,
+                    int.Parse(Model.Param2), new[] { "Lon", "Lat" });
             }
             var convert = function(param, range1Start, range1End, range2Start, range2End) {
                 return ((param - range1Start) * (range2End - range2Start) /
@@ -39,15 +41,14 @@
             }
             x = convert(@res["Lon"], r1.start, r1.end, r3.start, r3.end);
             y = convert(@res["Lat"], r2.start, r2.end, r4.start, r4.end);
-            ctx.beginPath();
-            ctx.arc(x, y, 9, 0, 2 * Math.PI);
-            ctx.fillStyle = "blue";
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(x, y, 5, 0, 2 * Math.PI);
-            ctx.fillStyle = "red";
-            ctx.fill();
+            var plane = new Image()
+            plane.onload = function () {
+                var planeSize = 35;
+                ctx.drawImage(plane, x - planeSize / 2,
+                    y - planeSize / 2, planeSize, planeSize);
+
+            }
+            plane.src = "../../../Content/airplane-icon.png";
         </script>
-    </div>
 </body>
 </html>

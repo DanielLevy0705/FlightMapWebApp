@@ -19,9 +19,10 @@ namespace Exercise3.Controllers
         {
 
             IFlightSimulatorsModel model = FlightSimulatorsModel.Instance; //remember to create the first instance (there is no settings this time)
-       
+            var vm = new DisplayDataContainerViewModel(param1, param2, freq, model);
             if (Parameter.isIP(param1) && Parameter.isInt(param2))
-                return View(model);
+                return View(vm);
+            
 
             //if (Parameter.isFile(param1) && Parameter.isNum(param2))
               //  return Content("file");
