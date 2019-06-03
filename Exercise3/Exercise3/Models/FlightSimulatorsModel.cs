@@ -37,7 +37,8 @@ namespace Exercise3.Models
         IClientsManager connections;
         Dictionary<string, string> path;
         private bool active;
-               
+        public Mutex filesMutex;
+
         //constructor
         public FlightSimulatorsModel(int timeout = 2000)
         {
@@ -47,6 +48,7 @@ namespace Exercise3.Models
             path["Lat"] = "/position/latitude-deg";
             path["Rudder"] = "/controls/flight/rudder";
             path["Throttle"] = "/controls/engines/current-engine/throttle";
+            filesMutex = new Mutex(false);
         }
         public void Start(ITelnetClientFactory factory, int timeout = 3000)
         {
@@ -101,19 +103,26 @@ namespace Exercise3.Models
         {
             string path = HttpContext.Current.Server.MapPath(String.Format(SCENARIO_FILE, file));
             var data = GetData(ip, port, vals);
-            using (StreamWriter newFile = File.AppendText(path))
+            var samples = new double[vals.Length];
+            int i = 0;
+            foreach (var val in vals)
+                samples[i++] = data[val];
+            filesMutex.WaitOne();
+            try
             {
-                
-                var samples = new double[vals.Length];
-                int i = 0;
-                foreach (var val in vals)
-                    samples[i++] = data[val];
-                newFile.WriteLine(string.Join(",", samples));
+                using (StreamWriter newFile = File.AppendText(path))
+                {
+                    newFile.WriteLine(string.Join(",", samples));
+                }
+            }
+            finally
+            {
+                filesMutex.ReleaseMutex();
             }
             return data;
-
-            //}).Start();
         }
+            
+        
                                                                                   //changes in load: returning string[] instead of dictionary<string,double>[].
         public Dictionary<string,double>[] LoadData(string file, string[] vals)
         {
