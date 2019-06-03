@@ -16,32 +16,31 @@
     <canvas id="canvas1"></canvas>
     
         <script>
-            //a function to get the data from the server.
-            function mygetData() {
-                @{
-                    var res = Model.model.GetData(Model.Param1,
-                        int.Parse(Model.Param2), new[] { "Lon", "Lat", "Rudder", "Throttle" });
+            //sync ajax call, to make it async we need to change other functions as well.
+            function ajaxRequest(url) {
+                var gdr = new XMLHttpRequest();
+                gdr.onreadystatechange = function () {
+
+                    if (gdr.readyState === 4) {
+                        if (gdr.status == 200 && gdr.status < 300) {
+                            return JSON.parse(gdr.responseText);
+                        }
+                    }
                 }
-                return {
-                    Lon: @res["Lon"] ,Lat: @res["Lat"] ,
-                    Rudder: @res["Rudder"] ,Throttle: @res["Throttle"]};
+                gdr.open('GET', url, true);
+                gdr.send();
+            }
+            function mygetData() {
+                return ajaxRequest('~/location/@Model.Param1/@Model.Param2');
             }
             //a function to save the data given from the server.
             function saveData() {
-
-                @{
-                    var saveRes = Model.model.SaveData(Model.Param1,
-                        int.Parse(Model.Param2), Model.FileName,
-                        new[] { "Lon", "Lat", "Rudder", "Throttle" });
-                }
-                return {
-                    Lon: @saveRes["Lon"] ,Lat: @saveRes["Lat"] ,
-                    Rudder: @saveRes["Rudder"] ,Throttle: @saveRes["Throttle"]};
+                return ajaxRequest('~/location/@Model.Param1/@Model.Param2/@Model.FileName');
             }
             //a function to load the data out of a file.
             function loadData(ctx,freq) {
                 //array of dicts
-                var objArray = @Html.Raw(Json.Encode(Model.model.LoadData(Model.FileName, new[] { "Lon", "Lat", "Rudder", "Throttle" })));
+                var objArray = ajaxRequest('~/load/@Model.FileName');
                 var counter = 0;
                 movePlane(ctx, getLoadedData, freq);
             }
@@ -117,13 +116,22 @@
             c.width = window.innerWidth;
             c.height = window.innerHeight;
 
-            var data = getData();
+
             //display the plane starting position.
-            x = convert(data.Lon, r1.start, r1.end, r3.start, r3.end);
-            y = convert(data.Lat, r2.start, r2.end, r4.start, r4.end);
-            $("html").display1(ctx, x, y);
+            function display() {
+                var data = myGetData();
+                x = convert(data.Lon, r1.start, r1.end, r3.start, r3.end);
+                y = convert(data.Lat, r2.start, r2.end, r4.start, r4.end);
+                $("html").display1(ctx, x, y);
+            }
+            if (@Model.Freq < 0 &&
+                @Model.paramCheck.isIP(Model.Param1) &&
+                @Model.paramCheck.isInt(Model.Param2)){
+                display();
+            }
             //duration is > 0 only in save
-            else if(@Model.paramCheck.isIP(Model.Param1) && @Model.Duration > 0){
+            else if (@Model.paramCheck.isIP(Model.Param1) && @Model.Duration > 0) {
+                display();
                 var saveId = movePlane(ctx, saveData,Math.round(1000 / @Model.Freq));
                 var timeout = Math.round(@Model.Duration * 1000);
                 setTimeout(function () {
@@ -133,13 +141,15 @@
             //get data (display with freq)
             else if (@Model.Freq > 0 && @Model.paramCheck.isIP(Model.Param1)){
                 //need to send myGetData instead of getData.
+                display();
                 movePlane(ctx, getData,Math.round(1000 / @Model.Freq));
             }
             else if (@Model.paramCheck.isNum(Model.Param2) && @Model.paramCheck.isFile(Model.Param1)) {
+                display();
                 loadData(ctx, Math.round(1000 / @Model.Param2));
             }
             //if its not a legit url send the user to wrongUrl page with links to legit url.
-            else if (!(@Model.paramCheck.isIP(Model.Param1) && @Model.paramCheck.isInt(Model.Param2))) {
+            else {
                 var body = document.getElementsByTagName(body);
                 body.style.background = 'none';
                 window.location.href = '@Url.Content("~/Home/WrongUrl/{params}")';
