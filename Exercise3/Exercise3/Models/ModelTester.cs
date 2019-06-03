@@ -98,7 +98,7 @@ namespace Exercise3.Models
         public static void LoadDataTest(IFlightSimulatorsModel model,string file, string test)
         {
             System.Diagnostics.Debug.WriteLine(test);
-            var data = model.LoadData(file);
+            var data = model.LoadData(file, new[] {"Lon", "Lat"});
             System.Diagnostics.Debug.WriteLine(new JavaScriptSerializer().Serialize(data));
         }
         #endregion

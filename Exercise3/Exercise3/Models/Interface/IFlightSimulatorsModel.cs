@@ -18,6 +18,6 @@ namespace Exercise3.Models.Interface
         //for example: GetData(127.0.0.1, 5400, {"Lon", "Lat", "Alieron"});
         // and the output: [123.3838, 192.122, 0.8]
         Dictionary<string, double> SaveData(string ip, int port, string file, string[] vals);
-        Dictionary<string, double>[] LoadData(string file);
+        Dictionary<string, double>[] LoadData(string file, string[] vals);
     }
 }

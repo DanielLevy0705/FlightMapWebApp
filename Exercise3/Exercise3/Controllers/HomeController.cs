@@ -7,6 +7,7 @@ using Exercise3.Models;
 using Exercise3.Models.Interface;
 using System.Net.Sockets;
 using System.Net;
+using System.Web.Script.Serialization;
 
 namespace Exercise3.Controllers
 {
@@ -20,7 +21,7 @@ namespace Exercise3.Controllers
         {
 
             IFlightSimulatorsModel model = FlightSimulatorsModel.Instance; //remember to create the first instance (there is no settings this time)
-            var vm = new DisplayDataContainerViewModel(param1, param2, freq ,fileName ,duration, model);
+            var vm = new DisplayDataContainerViewModel(param1, param2, freq ,fileName ,duration, null, model);
             //if (Parameter.isIP(param1) && Parameter.isInt(param2))
                 return View(vm);
             
@@ -38,6 +39,30 @@ namespace Exercise3.Controllers
                 param2 = port.ToString(),freq = freq,
                 duration = duration,fileName = file });
             //return View(model);
+        }
+        public ActionResult Location(string ip, int port, string file =  "")
+        {
+
+            if(string.IsNullOrEmpty(file))
+            {
+                return Content(new JavaScriptSerializer().Serialize(FlightSimulatorsModel.Instance.GetData(ip, port, new[] { "Lon", "Lat" })));
+            }
+            else
+            {
+                return Content(new JavaScriptSerializer().Serialize(FlightSimulatorsModel.Instance.SaveData(ip, port, file, new[] { "Lon", "Lat", "Rudder", "Throttle" })));
+            }
+        }
+        public ActionResult Load(string file)
+        {
+
+            if (!string.IsNullOrEmpty(file))
+            {
+                return Content(new JavaScriptSerializer().Serialize(FlightSimulatorsModel.Instance.LoadData(file, new[] { "Lon", "Lat", "Rudder", "Throttle" })));
+            }
+            else
+            {
+                return Content("give file");
+            }
         }
     }
 }

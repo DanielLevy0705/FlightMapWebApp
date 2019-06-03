@@ -101,47 +101,34 @@ namespace Exercise3.Models
         {
             string path = HttpContext.Current.Server.MapPath(String.Format(SCENARIO_FILE, file));
             var data = GetData(ip, port, vals);
-            using (System.IO.StreamWriter newFile = new System.IO.StreamWriter(path))
+            using (StreamWriter newFile = File.AppendText(path))
             {
-                newFile.WriteLine(String.Format("{0},{1},{2},{3}",data["Lon"],
-                    data["Lat"],data["Rudder"],data["Throttle"]));
+                
+                var samples = new double[vals.Length];
+                int i = 0;
+                foreach (var val in vals)
+                    samples[i++] = data[val];
+                newFile.WriteLine(string.Join(",", samples));
             }
-            /////////////////////////////////////////////////
-            //int size = duration * freq;
-            //var data = new Dictionary<string, double>[size];
-            //new Thread(() =>
-            //{
-            //  for (int i = 0; i < size; i ++)
-            //{
-            //  data[i] = GetData(ip, port, vals);
-            //Thread.Sleep(1000 / freq);
-            //}
-            ///////////////////////////////////////////////////
-
-            //var json = new JavaScriptSerializer().Serialize(data);
-            //string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), file);
-            //File.WriteAllText(filePath, json);
             return data;
 
             //}).Start();
         }
                                                                                   //changes in load: returning string[] instead of dictionary<string,double>[].
-        public Dictionary<string,double>[] LoadData(string file)
+        public Dictionary<string,double>[] LoadData(string file, string[] vals)
         {
             string path = HttpContext.Current.Server.MapPath(String.Format(SCENARIO_FILE, file));
             string[] lines = System.IO.File.ReadAllLines(path);
             Dictionary<string,double>[] dict = new Dictionary<string,double>[lines.Length];
             for(int i=0;i<lines.Length;i++)
             {
+                dict[i] = new Dictionary<string, double>();
                 string[] line = lines[i].Split(',');
-                dict[i]["Lon"] = double.Parse(line[0]);
-                dict[i]["Lat"] = double.Parse(line[1]);
-                dict[i]["Rudder"] = double.Parse(line[2]);
-                dict[i]["Throttle"] = double.Parse(line[3]);
+                for (int j=0; j < vals.Length; j++)
+                {
+                    dict[i][vals[j]] = double.Parse(line[j]);
+                }
             }
-            //string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), file);
-            //var json = File.ReadAllText(filePath);
-            //return new JavaScriptSerializer().Deserialize<Dictionary<string, double>[]>(json);
             return dict;
         }
 

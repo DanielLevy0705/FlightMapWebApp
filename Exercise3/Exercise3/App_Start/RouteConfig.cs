@@ -13,7 +13,17 @@ namespace Exercise3
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
-            
+            routes.MapRoute(
+                "GetLocation",
+                "location/{ip}/{port}/{file}",
+                new { Controller = "Home", Action = "Location", file = UrlParameter.Optional }
+            );
+            routes.MapRoute(
+                "GetSavedData",
+                "load/{file}",
+                new { Controller = "Home", Action = "Load"}
+            );
+
             routes.MapRoute(
                 "BasicDisplay",
                 "display/{param1}/{param2}/{freq}",
@@ -24,11 +34,7 @@ namespace Exercise3
                 "save/{ip}/{port}/{freq}/{duration}/{file}",
                 new { Controller = "Home", Action = "Save" }
             );
-            routes.MapRoute(
-                "GetLocation",
-                "info/location",
-                new { Controller = "Info", Action = "location" }
-            );
+            
 
 
 

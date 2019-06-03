@@ -113,7 +113,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\BaseNotify.cs" />
-    <Compile Include="Models\DisplayDataContainerViewModel.cs" />
+    <Compile Include="Models\DisplayDataContainerViewModel .cs" />
     <Compile Include="Models\ModelTester.cs" />
     <Compile Include="Models\ExpirableClientsManager.cs" />
     <Compile Include="Models\Interface\IClientsManager.cs" />
