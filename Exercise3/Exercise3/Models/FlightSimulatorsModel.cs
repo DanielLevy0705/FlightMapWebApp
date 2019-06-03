@@ -11,6 +11,7 @@ using System.Threading;
 using Exercise3.Models.Interface;
 using System.Web.Script.Serialization;
 using System.IO;
+using System.Web;
 
 namespace Exercise3.Models
 {
@@ -94,30 +95,54 @@ namespace Exercise3.Models
             }
             return res;
         }
-        public void SaveData(string ip, int port, int freq, int duration, string file, string[] vals)
+        public const string SCENARIO_FILE = "~/App_Data/{0}.txt";           // The Path of the Secnario
+                                                                            // changes: removed freq and duration as parameters.
+        public Dictionary<string, double> SaveData(string ip, int port, string file, string[] vals)
         {
-            int size = duration * freq;
-            var data = new Dictionary<string, double>[size];
-            new Thread(() =>
+            string path = HttpContext.Current.Server.MapPath(String.Format(SCENARIO_FILE, file));
+            var data = GetData(ip, port, vals);
+            using (System.IO.StreamWriter newFile = new System.IO.StreamWriter(path))
             {
-                for (int i = 0; i < size; i ++)
-                {
-                    data[i] = GetData(ip, port, vals);
-                    Thread.Sleep(1000 / freq);
-                }
+                newFile.WriteLine(String.Format("{0},{1},{2},{3}",data["Lon"],
+                    data["Lat"],data["Rudder"],data["Throttle"]));
+            }
+            /////////////////////////////////////////////////
+            //int size = duration * freq;
+            //var data = new Dictionary<string, double>[size];
+            //new Thread(() =>
+            //{
+            //  for (int i = 0; i < size; i ++)
+            //{
+            //  data[i] = GetData(ip, port, vals);
+            //Thread.Sleep(1000 / freq);
+            //}
+            ///////////////////////////////////////////////////
 
-                var json = new JavaScriptSerializer().Serialize(data);
-                string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), file);
-                File.WriteAllText(filePath, json);
+            //var json = new JavaScriptSerializer().Serialize(data);
+            //string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), file);
+            //File.WriteAllText(filePath, json);
+            return data;
 
-   
-            }).Start();
+            //}).Start();
         }
-        public Dictionary<string, double>[] LoadData(string file)
+                                                                                  //changes in load: returning string[] instead of dictionary<string,double>[].
+        public Dictionary<string,double>[] LoadData(string file)
         {
-            string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), file);
-            var json = File.ReadAllText(filePath);
-            return new JavaScriptSerializer().Deserialize<Dictionary<string, double>[]>(json);
+            string path = HttpContext.Current.Server.MapPath(String.Format(SCENARIO_FILE, file));
+            string[] lines = System.IO.File.ReadAllLines(path);
+            Dictionary<string,double>[] dict = new Dictionary<string,double>[lines.Length];
+            for(int i=0;i<lines.Length;i++)
+            {
+                string[] line = lines[i].Split(',');
+                dict[i]["Lon"] = double.Parse(line[0]);
+                dict[i]["Lat"] = double.Parse(line[1]);
+                dict[i]["Rudder"] = double.Parse(line[2]);
+                dict[i]["Throttle"] = double.Parse(line[3]);
+            }
+            //string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), file);
+            //var json = File.ReadAllText(filePath);
+            //return new JavaScriptSerializer().Deserialize<Dictionary<string, double>[]>(json);
+            return dict;
         }
 
     }

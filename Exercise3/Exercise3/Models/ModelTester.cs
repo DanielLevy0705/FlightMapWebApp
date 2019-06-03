@@ -86,7 +86,7 @@ namespace Exercise3.Models
                                        , int duration, string file,string[] vals, string test)
         {
             System.Diagnostics.Debug.WriteLine(test);
-            model.SaveData(ip, port,freq,duration, file, vals);
+            //model.SaveData(ip, port,freq,duration, file, vals);
             System.Diagnostics.Debug.WriteLine("saved.");
         }
         #endregion

@@ -16,24 +16,135 @@
     <canvas id="canvas1"></canvas>
     
         <script>
-            function getData() {
+            //a function to get the data from the server.
+            function mygetData() {
                 @{
                     var res = Model.model.GetData(Model.Param1,
                         int.Parse(Model.Param2), new[] { "Lon", "Lat", "Rudder", "Throttle" });
                 }
                 return {
-                    lon: @res["Lon"] ,lat: @res["Lat"] ,
-                    rudder: @res["Rudder"] ,throttle: @res["Throttle"]};
+                    Lon: @res["Lon"] ,Lat: @res["Lat"] ,
+                    Rudder: @res["Rudder"] ,Throttle: @res["Throttle"]};
             }
-            
+            //a function to save the data given from the server.
+            function saveData() {
+
+                @{
+                    var saveRes = Model.model.SaveData(Model.Param1,
+                        int.Parse(Model.Param2), Model.FileName,
+                        new[] { "Lon", "Lat", "Rudder", "Throttle" });
+                }
+                return {
+                    Lon: @saveRes["Lon"] ,Lat: @saveRes["Lat"] ,
+                    Rudder: @saveRes["Rudder"] ,Throttle: @saveRes["Throttle"]};
+            }
+            //a function to load the data out of a file.
+            function loadData(ctx,freq) {
+                //array of dicts
+                var objArray = @Html.Raw(Json.Encode(Model.model.LoadData(Model.FileName)));
+                var counter = 0;
+                movePlane(ctx, getLoadedData, freq);
+            }
+
+
+            //testing random points function.
+            function getData() {
+                return {
+                    Lon: (Math.floor(Math.random() * 361) - 180),
+                    Lat: (Math.floor(Math.random() * 181) - 90)
+                }
+            }
+            function getLoadedData() {
+                if (counter >= objArray.length) {
+                    return null;
+                }
+                return objArray[counter++];
+            }
+            function convert(param, range1Start, range1End, range2Start, range2End) {
+                return ((param - range1Start) * (range2End - range2Start) /
+                    (range1End - range1Start) + range2Start);
+            }
+            function line(ctx,xs, ys, xe, ye, color) {
+                ctx.beginPath();
+                ctx.lineCap = "round";
+                ctx.moveTo(xs, ys);
+                ctx.lineTo(xe, ye);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+            function movePlane(ctx,func,freq) {
+                var formerX = "start", formerY = "start";
+
+                var id = setInterval(function () {
+
+                    x = convert(data.Lon, r1.start, r1.end, r3.start, r3.end);
+                    y = convert(data.Lat, r2.start, r2.end, r4.start, r4.end);
+
+                    if (formerX != "start") {
+                        line(ctx, formerX, formerY, x, y, "#FFFFFF");
+                    }
+                    formerX = x, formerY = y;
+                    data = func();
+                    //if data is null, clear the interval
+                    if (data === null) {
+                        clearInterval(id);
+                    }
+                }, freq);
+                return id;
+            }
+            class range {
+                constructor(start, end) {
+                    this.start = start;
+                    this.end = end;
+                }
+            }
+
+
+            var lonEdge = 180, latEdge = 90;
+            var x, y, r1, r2, r3, r4;
+
+            //ranges to convert from
+            r1 = new range(-lonEdge, lonEdge);
+            r2 = new range(-latEdge, latEdge);
+            //ranges to convert to.
+            r3 = new range(0, window.innerWidth);
+            r4 = new range(0, window.innerHeight);
+
+            //canvas and context
+            var c = document.getElementById("canvas1");
+            var ctx = c.getContext("2d");
+            c.width = window.innerWidth;
+            c.height = window.innerHeight;
+
             var data = getData();
-            //if(display1)
-            $("html").display1(data);
-            //else if(display2)
-            //display2();
-            //else(if display3)
-            //display3()
-            //else if save()
+            //display the plane starting position.
+            x = convert(data.Lon, r1.start, r1.end, r3.start, r3.end);
+            y = convert(data.Lat, r2.start, r2.end, r4.start, r4.end);
+            $("html").display1(ctx, x, y);
+            //duration is > 0 only in save
+            else if(@Model.paramCheck.isIP(Model.Param1) && @Model.Duration > 0){
+                var saveId = movePlane(ctx, saveData,Math.round(1000 / @Model.Freq));
+                var timeout = Math.round(@Model.Duration * 1000);
+                setTimeout(function () {
+                clearInterval(saveId);
+                },timeout)
+            }
+            //get data (display with freq)
+            else if (@Model.Freq > 0 && @Model.paramCheck.isIP(Model.Param1)){
+                //need to send myGetData instead of getData.
+                movePlane(ctx, getData,Math.round(1000 / @Model.Freq));
+            }
+            else if (@Model.paramCheck.isNum(Model.Param2) && @Model.paramCheck.isFile(Model.Param1)) {
+                loadData(ctx, Math.round(1000 / @Model.Param2));
+            }
+            //if its not a legit url send the user to wrongUrl page with links to legit url.
+            else if (!(@Model.paramCheck.isIP(Model.Param1) && @Model.paramCheck.isInt(Model.Param2))) {
+                var body = document.getElementsByTagName(body);
+                body.style.background = 'none';
+                window.location.href = '@Url.Content("~/Home/WrongUrl/{params}")';
+            }
+
         </script>
 </body>
 </html>
