@@ -10,24 +10,24 @@ namespace Exercise3.Models
     public class Parameter
     {
         
-        public bool isIP(string str)
+        public int isIP(string str)
         {
             IPAddress address;
-            return IPAddress.TryParse(str, out address);
+            return IPAddress.TryParse(str, out address)?1:0;
         }
-        public bool isFile(string str)
+        public int isFile(string str)
         {
-            return File.Exists(str);
+            return File.Exists(str)?1:0;
         }
-        public bool isNum(string str)
+        public int isNum(string str)
         {
             double res;
-            return double.TryParse(str, out res);
+            return double.TryParse(str, out res)?1:0;
         }
-        public bool isInt(string str)
+        public int isInt(string str)
         {
             int res;
-            return int.TryParse(str, out res);
+            return int.TryParse(str, out res)?1:0;
         }
     }
 }

@@ -16,33 +16,88 @@
     <canvas id="canvas1"></canvas>
     
         <script>
-            //sync ajax call, to make it async we need to change other functions as well.
-            function ajaxRequest(url) {
+            var data;
+            var objArray;
+            //async ajax call that has variety of responses depending on mode.
+            function ajaxRequest(ctx,url,mode,freq) {
                 var gdr = new XMLHttpRequest();
-                gdr.onreadystatechange = function () {
+                var intId = null;
+                
+                if (mode === 'load') {
+                    gdr.onreadystatechange = function () {
 
-                    if (gdr.readyState === 4) {
-                        if (gdr.status == 200 && gdr.status < 300) {
-                            return JSON.parse(gdr.responseText);
+                        if (gdr.readyState === 4) {
+                            if (gdr.status == 200 && gdr.status < 300) {
+                                objArray = JSON.parse(gdr.responseText);
+                                intId = movePlane(ctx, getLoadedData, freq);
+                            }
+                        }
+                    }
+                } else if (mode === 'display') {
+                    gdr.onreadystatechange = function () {
+                        if (gdr.readyState === 4) {
+                            if (gdr.status == 200 && gdr.status < 300) {
+                                
+                                data = JSON.parse(gdr.responseText);
+                                display(data);
+                            }
+                        }
+                    }
+
+                } else {
+                    gdr.onreadystatechange = function () {
+                        if (gdr.readyState === 4) {
+                            if (gdr.status == 200 && gdr.status < 300) {
+                                function jsonReq() {
+                                    gdr = new XMLHttpRequest();
+                                    gdr.onreadystatechange = function () {
+
+                                        if (gdr.readyState === 4) {
+                                            if (gdr.status == 200 && gdr.status < 300) {
+                                                //get the data.
+                                                data = JSON.parse(gdr.responseText);
+
+                                                //if you want to see long path with random
+                                                // values, use this line instead: data = getData();
+
+                                                //and put the JSON.parse line that is above in comment.
+
+                                                //draw the path that.
+                                                drawPath(ctx, data);
+                                                
+                                            }
+                                        }
+                                    }
+                                    gdr.open('GET', url, true);
+                                    gdr.send();
+                                }
+                                intId = setInterval(jsonReq, freq);
+                            }
                         }
                     }
                 }
                 gdr.open('GET', url, true);
                 gdr.send();
+                return intId;
             }
-            function mygetData() {
-                return ajaxRequest('~/location/@Model.Param1/@Model.Param2');
+            //function to get the data out of server.
+            function GetData(ctx, freq) {
+                let URL = '/location/@Model.Param1/@Model.Param2';
+                return ajaxRequest(ctx, URL , 'get', freq);
             }
             //a function to save the data given from the server.
-            function saveData() {
-                return ajaxRequest('~/location/@Model.Param1/@Model.Param2/@Model.FileName');
+            function saveData(ctx, freq) {
+                let URL = '/location/@Model.Param1/@Model.Param2/@Model.FileName';
+                return ajaxRequest(ctx, URL, 'save', freq);
             }
             //a function to load the data out of a file.
             function loadData(ctx,freq) {
                 //array of dicts
-                var objArray = ajaxRequest('~/load/@Model.FileName');
+                console.log("got to load data");
+                let URL = '/load/@Model.FileName';
                 var counter = 0;
-                movePlane(ctx, getLoadedData, freq);
+                return ajaxRequest(ctx,URL,'load',freq);
+
             }
 
 
@@ -72,21 +127,31 @@
                 ctx.lineWidth = 3;
                 ctx.stroke();
             }
+            function drawPath(ctx, data) {
+
+                x = convert(data.Lon, r1.start, r1.end, r3.start, r3.end);
+                y = convert(data.Lat, r2.start, r2.end, r4.start, r4.end);
+
+                if (formerX != "start") {
+                    if (x != formerX || y != formerY) {
+                        line(ctx, formerX, formerY, x, y, "#FFFFFF");
+                    }
+                    
+                }
+                formerX = x, formerY = y;
+            }
             function movePlane(ctx,func,freq) {
-                var formerX = "start", formerY = "start";
+
 
                 var id = setInterval(function () {
 
-                    x = convert(data.Lon, r1.start, r1.end, r3.start, r3.end);
-                    y = convert(data.Lat, r2.start, r2.end, r4.start, r4.end);
-
-                    if (formerX != "start") {
-                        line(ctx, formerX, formerY, x, y, "#FFFFFF");
-                    }
-                    formerX = x, formerY = y;
                     data = func();
+                    if(data)
+                        drawPath(ctx, data);
+                    
                     //if data is null, clear the interval
                     if (data === null) {
+                        alert("animation is over.");
                         clearInterval(id);
                     }
                 }, freq);
@@ -102,7 +167,7 @@
 
             var lonEdge = 180, latEdge = 90;
             var x, y, r1, r2, r3, r4;
-
+            var formerX = "start", formerY = "start";
             //ranges to convert from
             r1 = new range(-lonEdge, lonEdge);
             r2 = new range(-latEdge, latEdge);
@@ -118,41 +183,55 @@
 
 
             //display the plane starting position.
-            function display() {
-                var data = myGetData();
+            function display(data) {
+
                 x = convert(data.Lon, r1.start, r1.end, r3.start, r3.end);
                 y = convert(data.Lat, r2.start, r2.end, r4.start, r4.end);
-                $("html").display1(ctx, x, y);
+                var planeSize = 35;
+
+                var plane = new Image();
+                plane.onload = function () {
+                    ctx.drawImage(plane, x - planeSize / 2,
+                        y - planeSize / 2, planeSize, planeSize);
+
+                }
+                plane.src = '/Content/airplane-icon.png';
+                plane.alt = "airplane-icon";
+                formerX = x;
+                formerY = y;
             }
+            let urlDisplay = '/location/@Model.Param1/@Model.Param2';
             if (@Model.Freq < 0 &&
                 @Model.paramCheck.isIP(Model.Param1) &&
                 @Model.paramCheck.isInt(Model.Param2)){
-                display();
+                ajaxRequest(ctx, urlDisplay, 'display');
             }
             //duration is > 0 only in save
             else if (@Model.paramCheck.isIP(Model.Param1) && @Model.Duration > 0) {
-                display();
-                var saveId = movePlane(ctx, saveData,Math.round(1000 / @Model.Freq));
+                ajaxRequest(ctx, urlDisplay, 'display');
+                var saveId = saveData(ctx, Math.round(1000 * @Model.Param2));
                 var timeout = Math.round(@Model.Duration * 1000);
                 setTimeout(function () {
-                clearInterval(saveId);
-                },timeout)
+                    clearInterval(saveId);
+                    alert("animation is over.")
+                }, timeout);
             }
             //get data (display with freq)
             else if (@Model.Freq > 0 && @Model.paramCheck.isIP(Model.Param1)){
                 //need to send myGetData instead of getData.
-                display();
-                movePlane(ctx, getData,Math.round(1000 / @Model.Freq));
+                ajaxRequest(ctx, urlDisplay, 'display');
+                GetData(ctx, Math.round(1000 * @Model.Freq));
             }
-            else if (@Model.paramCheck.isNum(Model.Param2) && @Model.paramCheck.isFile(Model.Param1)) {
-                display();
-                loadData(ctx, Math.round(1000 / @Model.Param2));
+                //call loadData to load data out of file.
+            else if (@Model.paramCheck.isNum(Model.Param2)) {
+                ajaxRequest(ctx, urlDisplay, 'display');
+                loadData(ctx, Math.round(1000 * @Model.Param2));
             }
             //if its not a legit url send the user to wrongUrl page with links to legit url.
             else {
-                var body = document.getElementsByTagName(body);
-                body.style.background = 'none';
-                window.location.href = '@Url.Content("~/Home/WrongUrl/{params}")';
+                //var body = document.getElementsByTagName(body);
+                //body.style.background = 'none';
+                //window.location.href = '/Home/WrongUrl/{params}';
             }
 
         </script>
