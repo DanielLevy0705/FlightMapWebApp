@@ -1,7 +1,12 @@
 {
   "ExpandedNodes": [
     "",
-    "\\Exercise3"
+    "\\Exercise3",
+    "\\Exercise3\\Exercise3",
+    "\\Exercise3\\Exercise3\\Content",
+    "\\Exercise3\\Exercise3\\Controllers",
+    "\\Exercise3\\Exercise3\\Views"
   ],
+  "SelectedNode": "\\Exercise3\\Exercise3",
   "PreviewInSolutionExplorer": false
 }

@@ -47,9 +47,15 @@ namespace Exercise3.Models
         {
             if (!connected)
                 return null;
-            
-            
-            string value = reader.ReadLine();
+            string value = "";
+            try
+            {
+                value = reader.ReadLine();
+            }
+            finally
+            {
+                
+            }
 
 
             return value;

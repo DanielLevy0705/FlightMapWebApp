@@ -34,7 +34,7 @@ namespace Exercise3.Models
 
         }
         #endregion
-        IClientsManager connections;
+        //IClientsManager connections;
         Dictionary<string, string> path;
         private bool active;
         public Mutex filesMutex;
@@ -54,15 +54,15 @@ namespace Exercise3.Models
         {
             if (!active)
             {
-                connections = new ExpirableClientsManager(timeout);
-                connections.Start(factory);
+               // connections = new ExpirableClientsManager(timeout);
+                //connections.Start(factory);
                 active = true;
             }
         }
         public void Stop()
         {
             active = false;
-            connections.Stop();
+            //connections.Stop();
         }
         private double ParseInsureSimulatorValue(string res, string path)
         {
@@ -80,11 +80,16 @@ namespace Exercise3.Models
         {
             if (!path.ContainsKey(val))
                 throw new Exception("Error: getValue() error - val not exist");
-            
-            connections.Lock(address);
-            connections.Write(address, "get " + path[val]);
-            double res = ParseInsureSimulatorValue(connections.Read(address), path[val]);
-            connections.Unlock(address);
+            var client = new TelnetClient();
+            client.Connect(address.Item1, address.Item2);
+            client.Write("get " + path[val]);
+            double res = ParseInsureSimulatorValue(client.Read(), path[val]);
+            client.Disconnect();
+
+            //connections.Lock(address);
+            //connections.Write(address, "get " + path[val]);
+            //double res = ParseInsureSimulatorValue(connections.Read(address), path[val]);
+            //connections.Unlock(address);
             return res;
         }
         public Dictionary<string, double> GetData(string ip, int port, string[] vals)
@@ -101,6 +106,7 @@ namespace Exercise3.Models
                                                                             // changes: removed freq and duration as parameters.
         public Dictionary<string, double> SaveData(string ip, int port, string file, string[] vals)
         {
+            System.Diagnostics.Debug.WriteLine("save");
             string path = HttpContext.Current.Server.MapPath(String.Format(SCENARIO_FILE, file));
             var data = GetData(ip, port, vals);
             var samples = new double[vals.Length];
@@ -123,17 +129,18 @@ namespace Exercise3.Models
         }
             
         
-                                                                                  //changes in load: returning string[] instead of dictionary<string,double>[].
+        
+        //changes in load: returning string[] instead of dictionary<string,double>[].
         public Dictionary<string,double>[] LoadData(string file, string[] vals)
         {
             string path = HttpContext.Current.Server.MapPath(String.Format(SCENARIO_FILE, file));
-            string[] lines = System.IO.File.ReadAllLines(path);
-            Dictionary<string,double>[] dict = new Dictionary<string,double>[lines.Length];
-            for(int i=0;i<lines.Length;i++)
+            string[] lines = File.ReadAllLines(path);
+            Dictionary<string, double>[] dict = new Dictionary<string, double>[lines.Length];
+            for (int i = 0; i < lines.Length; i++)
             {
                 dict[i] = new Dictionary<string, double>();
                 string[] line = lines[i].Split(',');
-                for (int j=0; j < vals.Length; j++)
+                for (int j = 0; j < vals.Length; j++)
                 {
                     dict[i][vals[j]] = double.Parse(line[j]);
                 }

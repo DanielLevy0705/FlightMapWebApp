@@ -209,7 +209,7 @@
             //duration is > 0 only in save
             else if (@Model.paramCheck.isIP(Model.Param1) && @Model.Duration > 0) {
                 ajaxRequest(ctx, urlDisplay, 'display');
-                var saveId = saveData(ctx, Math.round(1000 * @Model.Param2));
+                var saveId = saveData(ctx, Math.round(1000 * @Model.Freq));
                 var timeout = Math.round(@Model.Duration * 1000);
                 setTimeout(function () {
                     clearInterval(saveId);
@@ -224,8 +224,8 @@
             }
                 //call loadData to load data out of file.
             else if (@Model.paramCheck.isNum(Model.Param2)) {
-                ajaxRequest(ctx, urlDisplay, 'display');
-                loadData(ctx, Math.round(1000 * @Model.Param2));
+                //ajaxRequest(ctx, urlDisplay, 'display');
+                loadData(ctx, Math.round(1000 * @Model.Freq));
             }
             //if its not a legit url send the user to wrongUrl page with links to legit url.
             else {

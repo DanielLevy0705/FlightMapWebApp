@@ -32,14 +32,11 @@ namespace Exercise3.Controllers
         }
         public ActionResult Save(string ip, int port, int freq, double duration, string file)
         {
-
-            //IFlightSimulatorModel model = FlightSimulatorModel.Instance; //remember to create the first instance (there is no settings this time)
-
             return RedirectToAction("Display",new {param1 = ip,
-                param2 = port.ToString(),freq = freq,
-                duration = duration,fileName = file });
-            //return View(model);
+                   param2 = port.ToString(),freq = freq,
+                   duration = duration,fileName = file });
         }
+
         public ActionResult Location(string ip, int port, string file =  "")
         {
 
@@ -57,7 +54,7 @@ namespace Exercise3.Controllers
 
             if (!string.IsNullOrEmpty(file))
             {
-                return Content(new JavaScriptSerializer().Serialize(FlightSimulatorsModel.Instance.LoadData(file, new[] { "Lon", "Lat", "Rudder", "Throttle" })));
+                return Content(new JavaScriptSerializer().Serialize(FlightSimulatorsModel.Instance.LoadData(file, new[] { "Lon", "Lat" })));
             }
             else
             {
