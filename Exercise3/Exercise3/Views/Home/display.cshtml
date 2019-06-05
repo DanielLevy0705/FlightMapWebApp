@@ -61,6 +61,7 @@
                                             if (gdr.status == 200 && gdr.status < 300) {
                                                 //get the data.
                                                 data = JSON.parse(gdr.responseText);
+                                                //draw the path.
                                                 drawPath(ctx, data);
                                                 
                                             }
