@@ -17,7 +17,9 @@ namespace Exercise3.Models
         }
         public int isFile(string str)
         {
-            return File.Exists(str)?1:0;
+            string path = HttpContext.Current.Server.MapPath(String.Format(
+                FlightSimulatorsModel.SCENARIO_FILE, str));
+            return File.Exists(path)?1:0;
         }
         public int isNum(string str)
         {

@@ -18,51 +18,49 @@
         <script>
             var data;
             var objArray;
+            var intId = null;
+            var counter = 0;
             //async ajax call that has variety of responses depending on mode.
             function ajaxRequest(ctx,url,mode,freq) {
                 var gdr = new XMLHttpRequest();
-                var intId = null;
-                
+                //load mode
                 if (mode === 'load') {
+                    //when response is received, get the array and display it and draw path.
                     gdr.onreadystatechange = function () {
-
                         if (gdr.readyState === 4) {
                             if (gdr.status == 200 && gdr.status < 300) {
                                 objArray = JSON.parse(gdr.responseText);
+                                display(objArray[counter]);
                                 intId = movePlane(ctx, getLoadedData, freq);
                             }
                         }
                     }
+                    //display mode.
                 } else if (mode === 'display') {
+                    //just display the plane image in its position.
                     gdr.onreadystatechange = function () {
                         if (gdr.readyState === 4) {
                             if (gdr.status == 200 && gdr.status < 300) {
-                                
                                 data = JSON.parse(gdr.responseText);
                                 display(data);
                             }
                         }
                     }
-
+                    //save or get.
                 } else {
+                    //set an interval to get the data from the server and display it.
+                    //if mode == 'save' then data will also be saved in a file.
                     gdr.onreadystatechange = function () {
                         if (gdr.readyState === 4) {
                             if (gdr.status == 200 && gdr.status < 300) {
+                                //function for ajax request.
                                 function jsonReq() {
                                     gdr = new XMLHttpRequest();
                                     gdr.onreadystatechange = function () {
-
                                         if (gdr.readyState === 4) {
                                             if (gdr.status == 200 && gdr.status < 300) {
                                                 //get the data.
                                                 data = JSON.parse(gdr.responseText);
-
-                                                //if you want to see long path with random
-                                                // values, use this line instead: data = getData();
-
-                                                //and put the JSON.parse line that is above in comment.
-
-                                                //draw the path that.
                                                 drawPath(ctx, data);
                                                 
                                             }
@@ -71,6 +69,7 @@
                                     gdr.open('GET', url, true);
                                     gdr.send();
                                 }
+                                //set interval with the ajax request function.
                                 intId = setInterval(jsonReq, freq);
                             }
                         }
@@ -78,46 +77,40 @@
                 }
                 gdr.open('GET', url, true);
                 gdr.send();
-                return intId;
             }
             //function to get the data out of server.
             function GetData(ctx, freq) {
                 let URL = '/location/@Model.Param1/@Model.Param2';
-                return ajaxRequest(ctx, URL , 'get', freq);
+                ajaxRequest(ctx, URL , 'get', freq);
             }
             //a function to save the data given from the server.
             function saveData(ctx, freq) {
                 let URL = '/location/@Model.Param1/@Model.Param2/@Model.FileName';
-                return ajaxRequest(ctx, URL, 'save', freq);
+                ajaxRequest(ctx, URL, 'save', freq);
             }
             //a function to load the data out of a file.
             function loadData(ctx,freq) {
                 //array of dicts
-                console.log("got to load data");
-                let URL = '/load/@Model.FileName';
-                var counter = 0;
-                return ajaxRequest(ctx,URL,'load',freq);
+                
+                let URL = '/load/@Model.Param1';
+                ajaxRequest(ctx,URL,'load',freq);
 
             }
-
-
-            //testing random points function.
-            function getData() {
-                return {
-                    Lon: (Math.floor(Math.random() * 361) - 180),
-                    Lat: (Math.floor(Math.random() * 181) - 90)
-                }
-            }
+            //get loaded data out of array of data objects.
             function getLoadedData() {
+                //if there is no more data, return null.
                 if (counter >= objArray.length) {
                     return null;
                 }
+                //else return the data in the counter place.
                 return objArray[counter++];
             }
+            //convert data parameters from their range to other range.
             function convert(param, range1Start, range1End, range2Start, range2End) {
                 return ((param - range1Start) * (range2End - range2Start) /
                     (range1End - range1Start) + range2Start);
             }
+            //a function to draw a line.
             function line(ctx,xs, ys, xe, ye, color) {
                 ctx.beginPath();
                 ctx.lineCap = "round";
@@ -127,24 +120,25 @@
                 ctx.lineWidth = 3;
                 ctx.stroke();
             }
+            //a function that draw a line by getting data points.
             function drawPath(ctx, data) {
 
                 x = convert(data.Lon, r1.start, r1.end, r3.start, r3.end);
                 y = convert(data.Lat, r2.start, r2.end, r4.start, r4.end);
-
+                //draw the line if all the parameters are fine.
                 if (formerX != "start") {
                     if (x != formerX || y != formerY) {
-                        line(ctx, formerX, formerY, x, y, "#FFFFFF");
+                        line(ctx, formerX, formerY, x, y, "#FF0000");
                     }
-                    
                 }
                 formerX = x, formerY = y;
             }
+            //a function to draw the path from loaded data.
             function movePlane(ctx,func,freq) {
 
-
+                //set interval that draw path with data.
                 var id = setInterval(function () {
-
+                    //get the data from func.
                     data = func();
                     if(data)
                         drawPath(ctx, data);
@@ -157,6 +151,7 @@
                 }, freq);
                 return id;
             }
+            //a class for range.
             class range {
                 constructor(start, end) {
                     this.start = start;
@@ -184,35 +179,40 @@
 
             //display the plane starting position.
             function display(data) {
-
+                //convert data params and set plane size.
                 x = convert(data.Lon, r1.start, r1.end, r3.start, r3.end);
                 y = convert(data.Lat, r2.start, r2.end, r4.start, r4.end);
-                var planeSize = 35;
-
+                var planeSize = 80;
+                //set image onload function.
                 var plane = new Image();
                 plane.onload = function () {
                     ctx.drawImage(plane, x - planeSize / 2,
                         y - planeSize / 2, planeSize, planeSize);
 
                 }
-                plane.src = '/Content/airplane-icon.png';
+                //set src and alt.
+                plane.src = '/Content/airplane.png';
                 plane.alt = "airplane-icon";
+                //save former x and y.
                 formerX = x;
                 formerY = y;
             }
+
             let urlDisplay = '/location/@Model.Param1/@Model.Param2';
+            //check which mission to activate.
             if (@Model.Freq < 0 &&
                 @Model.paramCheck.isIP(Model.Param1) &&
                 @Model.paramCheck.isInt(Model.Param2)){
                 ajaxRequest(ctx, urlDisplay, 'display');
             }
-            //duration is > 0 only in save
+            //duration is > 0 only in save.
             else if (@Model.paramCheck.isIP(Model.Param1) && @Model.Duration > 0) {
                 ajaxRequest(ctx, urlDisplay, 'display');
-                var saveId = saveData(ctx, Math.round(1000 * @Model.Freq));
+                saveData(ctx, Math.round(1000 * @Model.Freq));
                 var timeout = Math.round(@Model.Duration * 1000);
+                //set timeout to save.
                 setTimeout(function () {
-                    clearInterval(saveId);
+                    clearInterval(intId);
                     alert("animation is over.")
                 }, timeout);
             }
@@ -223,17 +223,11 @@
                 GetData(ctx, Math.round(1000 * @Model.Freq));
             }
                 //call loadData to load data out of file.
-            else if (@Model.paramCheck.isNum(Model.Param2)) {
-                //ajaxRequest(ctx, urlDisplay, 'display');
-                loadData(ctx, Math.round(1000 * @Model.Freq));
-            }
-            //if its not a legit url send the user to wrongUrl page with links to legit url.
             else {
-                //var body = document.getElementsByTagName(body);
-                //body.style.background = 'none';
-                //window.location.href = '/Home/WrongUrl/{params}';
+                if (@Model.paramCheck.isNum(Model.Param2) && @Model.paramCheck.isFile(Model.Param1)) {
+                    loadData(ctx, Math.round(1000 * @Model.Param2));
+                }
             }
-
         </script>
 </body>
 </html>
